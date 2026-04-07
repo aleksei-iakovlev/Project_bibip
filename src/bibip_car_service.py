@@ -1,5 +1,7 @@
 from models import Car, CarFullInfo, CarStatus, Model, ModelSaleStats, Sale
+from decimal import Decimal
 import os
+import json
 
 
 class CarService:
@@ -9,41 +11,74 @@ class CarService:
 
     # Задание 1. Сохранение автомобилей и моделей
     def add_model(self, model: Model) -> Model:
-        with open(f"{self.root_directory_path}/models.txt", "a+") as f:
-            data = f"{model.id};{model.name};{model.brand}".ljust(98) + "\n"
-            f.write(data)
-        with open(f"{self.root_directory_path}/models_index.txt", "a+") as f:
-            data = f"{model.id}".ljust(98) + "\n"
-            f.write(data)
+
+        model_data = {
+            'id': model.id,
+            'name': model.name,
+            'brand': model.brand
+        }
+        with open(f"{self.root_directory_path}/models.txt", "a", encoding="utf-8") as f:
+            f.write(json.dumps(model_data) + "\n")
+
+        model_index_data = {
+            'id': model.id
+        }
+        with open(f"{self.root_directory_path}/models_index.txt", "a", encoding="utf-8") as f:
+            f.write(json.dumps(model_index_data) + "\n")
 
     # Задание 1. Сохранение автомобилей и моделей
     def add_car(self, car: Car) -> Car:
-        with open(f"{self.root_directory_path}/cars.txt", "a+") as f:
-            data = f"{car.vin};{car.model};{car.price};{car.date_start};{car.status}".ljust(98) + "\n"
-            f.write(data)
-        with open(f"{self.root_directory_path}/cars_index.txt", "a+") as f:
-            data = f"{car.vin}".ljust(98) + "\n"
-            f.write(data)
+
+        car_data = {
+            'vin': car.vin,
+            'model': car.model,
+            'price': str(car.price),
+            'date_start': str(car.date_start),
+            'status': car.status
+        }
+        with open(f"{self.root_directory_path}/cars.txt", "a", encoding="utf-8") as f:
+            f.write(json.dumps(car_data) + "\n")
+        
+        car_index_data = {
+            'car_vin': car.vin
+        }
+        with open(f"{self.root_directory_path}/cars_index.txt", "a", encoding="utf-8") as f:
+            f.write(json.dumps(car_index_data) + "\n")
 
     # Задание 2. Сохранение продаж.
     def sell_car(self, sale: Sale) -> Car:
-        with open(f"{self.root_directory_path}/sales.txt", "a+") as f:
-            data = f"{sale.sales_number};{sale.car_vin};{sale.sales_date};{sale.cost}".ljust(98) + "\n"
-            f.write(data)
-        with open(f"{self.root_directory_path}/sales_index.txt", "a+") as f:
-            data = f"{sale.sales_number};{sale.car_vin}".ljust(98) + "\n"
-            f.write(data)
 
-            index_list = os.readlines(f"{self.root_directory_path}/sales_index.txt")
-            index_vin_car = index_list.index(sale.car_vin)
+        sale_data = {
+            'sales_number': sale.sales_number,
+            'car_vin': sale.car_vin,
+            'sales_date': str(sale.sales_date),
+            'cost': str(sale.cost)
+        }
+        with open(f"{self.root_directory_path}/sales.txt", "a", encoding="utf-8") as f:
+            f.write(json.dumps(sale_data) + "\n")
 
-        with open(f"{self.root_directory_path}/car.txt", "r+") as f:
-            f.seek(index_vin_car * 100)
-            data = f"{car.vin};{car.model};{car.price};{car.date_start};{car.status}".ljust(98) + "\n"
-            f.write(data)
+        sale_index_data = {
+            'sales_number': sale.sales_number
+        }
+        with open(f"{self.root_directory_path}/sales_index.txt", "a", encoding="utf-8") as f:
+            f.write(json.dumps(sale_index_data) + "\n")
 
+        with open(f"{self.root_directory_path}/cars_index.txt", "r+", encoding="utf-8") as f:
+            lis = f.readlines()
+            for i in lis:
+                if sale.car_vin in i:
+                    return i
 
+        car_data = {
+            'status': 'sold'
+        }
 
+        with open(f"{self.root_directory_path}/cars.txt", "r+", encoding="utf-8") as f:
+            j = 0
+            for line in f:
+                j += 1
+                if j == i:
+                    line.write(json.dumps(car_data))
 
     # Задание 3. Доступные к продаже
     def get_cars(self, status: CarStatus) -> list[Car]:
