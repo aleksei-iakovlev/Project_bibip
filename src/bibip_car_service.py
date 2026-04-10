@@ -85,6 +85,8 @@ class CarService:
     # Задание 4. Детальная информация
     def get_car_info(self, vin: str) -> CarFullInfo | None:
 
+        car = None
+        model = None
 
         with open(f"{self.root_directory_path}/cars.txt", "r+") as f:
             for line in f:
@@ -92,24 +94,39 @@ class CarService:
                 if vin == c.vin:
                     car = c
                     break
-                
 
-        with open(f"{self.root_directory_path}/models.txt", "r+") as f:
-            for line in f:
-                m = Model.model_validate_json(line)
-                if m.id == car.model:
-                    model = m
-                    break
+        if car is not None:
+                
+            with open(f"{self.root_directory_path}/models.txt", "r+") as f:
+                for line in f:
+                    m = Model.model_validate_json(line)
+                    if m.id == car.model:
+                        model = m
+                        break
         
-        if car.status == CarStatus.sold:
-            try:
-                sale = None
-                with open(f"{self.root_directory_path}/sales.txt", "r+") as f:
-                    for line in f:
-                        s = Sale.model_validate_json(line)
-                        if vin == s.car_vin:
-                            sale = s
-                            break
+            if car.status == CarStatus.sold:
+                try:
+                    sale = None
+                    with open(f"{self.root_directory_path}/sales.txt", "r+") as f:
+                        for line in f:
+                            s = Sale.model_validate_json(line)
+                            if vin == s.car_vin:
+                                sale = s
+                                break
+                    car_full_info = CarFullInfo(
+                        vin=car.vin,
+                        car_model_name=model.name,
+                        car_model_brand=model.brand,
+                        price=car.price,
+                        date_start=car.date_start,
+                        status=car.status,
+                        sales_date=sale.sales_date,
+                        sales_cost=sale.cost
+                    )
+                except Exception:
+                    return None
+                
+            else:
                 car_full_info = CarFullInfo(
                     vin=car.vin,
                     car_model_name=model.name,
@@ -117,25 +134,11 @@ class CarService:
                     price=car.price,
                     date_start=car.date_start,
                     status=car.status,
-                    sales_date=sale.sales_date,
-                    sales_cost=sale.cost
+                    sales_date=None,
+                    sales_cost=None
                 )
-            except Exception:
-                return None
-            
-        else:
-            car_full_info = CarFullInfo(
-                vin=car.vin,
-                car_model_name=model.name,
-                car_model_brand=model.brand,
-                price=car.price,
-                date_start=car.date_start,
-                status=car.status,
-                sales_date=None,
-                sales_cost=None
-            )
 
-        return car_full_info
+            return car_full_info
 
     # Задание 5. Обновление ключевого поля
     def update_vin(self, vin: str, new_vin: str) -> Car:
