@@ -301,12 +301,3 @@ class CarService:
 
         return res
 
-        
-
-#service = CarService('data')
-#sold = CarStatus.sold
-#print(service.get_cars(sold))
-#print(service.get_car_info("5N1CR2TS0HW037674"))
-#res = service.update_vin("KNAGM4A77D5316538", "UPDGM4A77D5316538")
-#print(res)
-#print(service.top_models_by_sales())
