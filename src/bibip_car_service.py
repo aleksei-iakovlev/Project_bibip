@@ -218,29 +218,31 @@ class CarService:
     def top_models_by_sales(self) -> list[ModelSaleStats]:
         
         with open(f"{self.root_directory_path}/models_index.txt", "r") as f:
-            lis = []
+            model_list = []
             for j in f:
-                lis.append(int(j.strip()))
-            models_sales = dict.fromkeys(lis, 0)
+                model_list.append(int(j.strip()))
+            models_sales = dict.fromkeys(model_list, 0)
         
-        with open(f"{self.root_directory_path}/sales.txt", "r") as f:
-            
+        with open(f"{self.root_directory_path}/sales_index.txt", "r") as f:
+            sales_list = []
             for y in f:
+                sales_list.append(y.strip())
+            
+        with open(f"{self.root_directory_path}/cars_index.txt", "r") as f:
+            car_line_numbers = []
+            j = 0
+            for i in f:
+                if i.strip() in sales_list:
+                    car_line_numbers.append(j)
+                j += 1
 
-                sale = Sale.model_validate_json(y)
-                
-                with open(f"{self.root_directory_path}/cars_index.txt", "r+") as f:
-                    line_number = -1
-                    for i, line in enumerate(f):
-                        if sale.car_vin in line:
-                            line_number = i
-                            break
+        with open(f"{self.root_directory_path}/cars.txt", "r") as f:
+            
+            for i in range(len(car_line_numbers)):
 
-                with open(f"{self.root_directory_path}/cars.txt", "r") as f:
-
-                    f.seek(line_number * (self.RECORD_SIZE))
-                    car_line = f.read(self.DATA_SIZE)
-                    car = Car.model_validate_json(car_line)
+                f.seek(car_line_numbers[i] * (self.RECORD_SIZE))
+                car_line = f.read(self.DATA_SIZE)
+                car = Car.model_validate_json(car_line)
 
                 count = dict.pop(models_sales, car.model)
                 models_sales[car.model] = count + 1
@@ -303,10 +305,10 @@ class CarService:
 
         
 
-#service = CarService('data')
+service = CarService('data')
 #sold = CarStatus.sold
 #print(service.get_cars(sold))
 #print(service.get_car_info("5N1CR2TS0HW037674"))
 #res = service.update_vin("KNAGM4A77D5316538", "UPDGM4A77D5316538")
 #print(res)
-#print(service.top_models_by_sales())
+print(service.top_models_by_sales())
